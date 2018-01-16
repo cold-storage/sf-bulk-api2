@@ -8,27 +8,28 @@ const querystring = require('querystring');
 class Bulk2 {
 
   constructor(options) {
+    /*
+      Required options.
+    */
+    if (!options.url) throw new Error('options.url required');
+    if (!options.username) throw new Error('options.username required');
+    if (!options.password) throw new Error('options.password required');
+    if (!options.token) throw new Error('options.token required');
+    if (!options.apiVersion) throw new Error('options.apiVersion required');
+    if (!options.consumerKey) throw new Error('options.consumerKey required');
+    if (!options.consumerSecret) throw new Error('options.consumerSecret required');
+    this.options = options;
+
     this.authToken = null;
     this.idUrl = null;
     this.url = null;
     this.jobId = null;
-    if (options) {
-      if (options.externalIdFieldName) {
-        this.externalIdFieldName = options.externalIdFieldName;
-      }
-      if (options.object) {
-        this.object = options.object;
-      }
-      if (options.operation) {
-        this.operation = options.operation;
-      }
-    }
   }
 
   async uploadJobData(data) {
     await this.createJob();
     await axios.put(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest/${this.jobId}/batches`,
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${this.jobId}/batches`,
       data, {
         headers: {
           authorization: `Bearer ${this.authToken}`,
@@ -41,13 +42,13 @@ class Bulk2 {
     if (!this.authToken) {
       const body = querystring.stringify({
         grant_type: 'password',
-        client_id: process.env.BULK2_CONSUMER_KEY,
-        client_secret: process.env.BULK2_CONSUMER_SECRET,
-        username: process.env.BULK2_USERNAME,
-        password: process.env.BULK2_PASSWORD + process.env.BULK2_TOKEN
+        client_id: this.options.consumerKey,
+        client_secret: this.options.consumerSecret,
+        username: this.options.username,
+        password: this.options.password + this.options.token
       });
       const response = await axios.post(
-        `${process.env.BULK2_URL}/services/oauth2/token`, body);
+        `${this.options.url}/services/oauth2/token`, body);
       this.authToken = response.data.access_token;
       this.idUrl = response.data.id;
     }
@@ -70,14 +71,14 @@ class Bulk2 {
   async createJob() {
     await this.getUrl();
     const body = {
-      object: this.object,
-      operation: this.operation
+      object: this.options.object,
+      operation: this.options.operation
     };
-    if (this.externalIdFieldName) {
-      body.externalIdFieldName = this.externalIdFieldName;
+    if (this.options.externalIdFieldName) {
+      body.externalIdFieldName = this.options.externalIdFieldName;
     }
     const response = await axios.post(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest`,
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest`,
       body, {
         headers: {
           authorization: `Bearer ${this.authToken}`
@@ -89,7 +90,7 @@ class Bulk2 {
   async getJobInfo(id) {
     await this.getUrl();
     const response = await axios.get(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest/${id}`, {
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}`, {
         headers: {
           authorization: `Bearer ${this.authToken}`
         }
@@ -112,7 +113,7 @@ class Bulk2 {
       state: myState
     };
     const response = await axios.patch(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest/${id}`,
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}`,
       body, {
         headers: {
           authorization: `Bearer ${this.authToken}`,
@@ -126,7 +127,7 @@ class Bulk2 {
     id = id || this.jobId;
     await this.getUrl();
     await axios.delete(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest/${id}`, {
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}`, {
         headers: {
           authorization: `Bearer ${this.authToken}`
         }
@@ -148,7 +149,7 @@ class Bulk2 {
   async getResults(id, resultType) {
     await this.getUrl();
     return axios.get(
-      `${this.url}/services/data/v${process.env.BULK2_API_VERSION}/jobs/ingest/${id}/${resultType}/`, {
+      `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}/${resultType}/`, {
         responseType: 'stream',
         headers: {
           authorization: `Bearer ${this.authToken}`
@@ -251,4 +252,3 @@ exports = module.exports = Bulk2;
 //     "utcOffset": -28800000
 // }
 // ```
-
