@@ -1,0 +1,23 @@
+{
+  "name": "sf-bulk-api2",
+  "version": "0.0.0",
+  "description": "Salesforce Bulk API 2.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johndstein/sf-bulk-api2.git"
+  },
+  "author": "John Stein",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/johndstein/sf-bulk-api2/issues"
+  },
+  "homepage": "https://github.com/johndstein/sf-bulk-api2#readme",
+  "dependencies": {
+    "axios": "0.17.1",
+    "querystring": "0.2.0"
+  }
+}
