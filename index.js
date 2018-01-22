@@ -5,7 +5,18 @@
 const axios = require('axios');
 const querystring = require('querystring');
 
-class Bulk2 {
+/*
+
+  Provides most of the functionality of the Salesforce Bulk API 2.0.
+
+  https://developer.salesforce.com/docs/atlas.en-us.api_bulk_v2.meta/api_bulk_v2/introduction_bulk_api_2.htm
+
+  Each instance of BulkApi is meant to work with a single Job. To work with a
+  different job, create a new BulkApi instance.
+
+*/
+
+class BulkApi {
 
   constructor(options) {
     /*
@@ -19,10 +30,23 @@ class Bulk2 {
     if (!options.consumerKey) throw new Error('options.consumerKey required');
     if (!options.consumerSecret) throw new Error('options.consumerSecret required');
     this.options = options;
-
+    /*
+      The following are needed to create a job.
+    */
+    this.options.object = options.object || null;
+    // operation options: insert, upsert, update, delete, query, queryAll
+    this.options.operation = options.operation || null;
+    // externalIdFieldName only needed for upsert jobs.
+    this.options.externalIdFieldName = options.externalIdFieldName || null;
+    /*
+      The following are set on login/getUrl.
+    */
     this.authToken = null;
     this.idUrl = null;
     this.url = null;
+    /*
+      jobId is set on createJob.
+    */
     this.jobId = null;
   }
 
@@ -88,6 +112,7 @@ class Bulk2 {
   }
 
   async getJobInfo(id) {
+    id = id || this.jobId;
     await this.getUrl();
     const response = await axios.get(
       `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}`, {
@@ -147,6 +172,7 @@ class Bulk2 {
   }
 
   async getResults(id, resultType) {
+    id = id || this.jobId;
     await this.getUrl();
     return axios.get(
       `${this.url}/services/data/v${this.options.apiVersion}/jobs/ingest/${id}/${resultType}/`, {
@@ -158,7 +184,7 @@ class Bulk2 {
   }
 }
 
-exports = module.exports = Bulk2;
+exports = module.exports = BulkApi;
 
 // ## OAUTH
 
